@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DWSF Program Benchmarking Tool</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1e293b;
+            --accent: #0F6E56;
+            --header-bg: #121212;
+            --bg-light: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #334155;
+            --text-dark: #0f172a;
+            --border: #e2e8f0;
+            --success: #16a34a;
+            --warning: #ea580c;
+            --danger: #dc2626;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 3rem 1rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .brand-header {
+            text-align: center;
+            background-color: var(--header-bg);
+            border-radius: 20px;
+            padding: 2.5rem 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .header-icon {
+            width: 56px;
+            height: auto;
+            margin-bottom: 1rem;
+        }
+
+        .brand-header h1 {
+            font-size: 2rem;
+            color: #ffffff;
+            margin-bottom: 0.5rem;
+        }
+
+        .brand-header p {
+            color: #94A3B8;
+            font-size: 1.05rem;
+        }
+
+        .intro-diagram {
+            display: block;
+            width: 100%;
+            max-width: 380px;
+            height: auto;
+            margin: 1.5rem auto 0;
+        }
+
+        .category-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        /* Three-column layout: left context box, question card, right context box.
+           Reused by both the Governance and Education steps. */
+        .domain-layout {
+            display: grid;
+            grid-template-columns: 200px 1fr 200px;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .context-box {
+            background: var(--bg-light);
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            position: sticky;
+            top: 1.5rem;
+        }
+
+        .context-box h4 {
+            font-size: 0.9rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .context-box p {
+            font-size: 0.85rem;
+            color: var(--text-muted, #64748b);
+            margin: 0;
+        }
+
+        /* Below ~960px there isn't room for three columns, so stack them.
+           No order override here — natural DOM order is used, meaning
+           Context appears first, then the questions, then Why This Matters. */
+        @media (max-width: 960px) {
+            .domain-layout {
+                grid-template-columns: 1fr;
+            }
+            .context-box {
+                position: static;
+            }
+        }
+
+        .category-title {
+            font-size: 1.4rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--bg-light);
+        }
+
+        .question-block {
+            margin-bottom: 2rem;
+        }
+
+        .question-text {
+            font-weight: 500;
+            color: var(--text-dark);
+            margin-bottom: 0.75rem;
+            display: block;
+        }
+
+        .options-group {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            background-color: var(--bg-light);
+            padding: 0.5rem;
+            border-radius: 8px;
+        }
+
+        .option-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 0.75rem 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .option-label input {
+            margin-bottom: 0.25rem;
+        }
+
+        .option-label:hover {
+            border-color: var(--accent);
+            background-color: #f0fdfa;
+        }
+
+        .option-label:has(input:checked) {
+            background-color: #ccfbf1;
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .intro-placeholder {
+            border: 2px dashed var(--border);
+            background: #fbfdff;
+            border-radius: 12px;
+            padding: 1.75rem;
+            color: #64748b;
+            font-size: 1rem;
+        }
+
+        .intro-placeholder strong {
+            color: var(--text-dark);
+        }
+
+        .field-block {
+            margin-bottom: 1.5rem;
+        }
+
+        .field-block:last-child {
+            margin-bottom: 0;
+        }
+
+        .field-label {
+            font-weight: 500;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .field-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            color: var(--text-main);
+            transition: border-color 0.2s;
+        }
+
+        .field-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .step-progress {
+            display: flex;
+            justify-content: center;
+            gap: 0.6rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .step-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--border);
+            transition: background-color 0.2s ease;
+        }
+
+        .step-dot.active {
+            background-color: var(--accent);
+        }
+
+        .step-dot.complete {
+            background-color: #99d8d1;
+        }
+
+        .step-label {
+            text-align: center;
+            color: #64748b;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+        }
+
+        .submit-area {
+            text-align: center;
+            margin-top: 3rem;
+            margin-bottom: 4rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background-color: var(--accent);
+            color: white;
+            padding: 1rem 3rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #0b5346;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-alt {
+            background-color: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.6rem 1.2rem;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .btn-alt:hover {
+            background-color: var(--bg-light);
+            border-color: var(--text-muted);
+        }
+
+        .submit-status {
+            width: 100%;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #64748b;
+            min-height: 1.2em;
+        }
+
+        .submit-status.error { color: var(--danger); }
+        .submit-status.success { color: var(--success); }
+
+        #results-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            z-index: 1000;
+        }
+
+        #results-overlay.visible {
+            display: flex;
+        }
+
+        #results-box {
+            position: relative;
+            background: var(--card-bg);
+            border: 2px solid var(--accent);
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 45px -10px rgba(0,0,0,0.35);
+            max-width: 700px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        #results-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 2.25rem;
+            height: 2.25rem;
+            border: none;
+            background: var(--bg-light);
+            color: var(--text-main);
+            border-radius: 50%;
+            font-size: 1.5rem;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #results-close:hover {
+            background-color: var(--border);
+        }
+
+        .score-display {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .score-num {
+            font-size: 4.5rem;
+            font-weight: 800;
+            color: var(--accent);
+            line-height: 1;
+        }
+
+        .score-label {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-top: 0.5rem;
+        }
+
+        .score-tier {
+            display: inline-block;
+            margin-top: 0.75rem;
+            padding: 0.25rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .tier-low { background-color: #fee2e2; color: var(--danger); }
+        .tier-med { background-color: #ffedd5; color: var(--warning); }
+        .tier-high { background-color: #dcfce7; color: var(--success); }
+
+        .recommendations-wrapper h3 {
+            font-size: 1.25rem;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+        }
+
+        .rec-box {
+            background-color: var(--bg-light);
+            border-left: 4px solid var(--accent);
+            padding: 1.5rem;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .rec-box.strength-box {
+            border-left-color: var(--success);
+            background-color: #f0fdf4;
+        }
+
+        .rec-box h4 {
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .rec-box ul {
+            padding-left: 1.25rem;
+        }
+
+        .rec-box li {
+            margin-bottom: 0.5rem;
+        }
+
+        #report-date {
+            text-align: center;
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+        }
+
+        @media (max-width: 640px) {
+            .options-group { grid-template-columns: 1fr; }
+            .option-label { flex-direction: row; justify-content: flex-start; gap: 1rem; padding: 0.75rem 1rem; }
+            .details-grid { grid-template-columns: 1fr; }
+            #results-box { padding: 1.75rem 1.25rem; }
+
+            .brand-header {
+                padding: 1rem 0.75rem;
+                margin-bottom: 1rem;
+                border-radius: 14px;
+            }
+            .header-icon {
+                width: 28px;
+                margin-bottom: 0.4rem;
+            }
+            .brand-header h1 {
+                font-size: 1.1rem;
+                line-height: 1.25;
+                margin-bottom: 0.25rem;
+            }
+            .brand-header p {
+                font-size: 0.78rem;
+            }
+            body {
+                padding: 1.25rem 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header class="brand-header">
+        <svg class="header-icon" viewBox="0 0 240 256" xmlns="http://www.w3.org/2000/svg">
+            <path d="M120 20 C170 20 200 45 200 95 C200 155 150 195 120 215
+                     C90 195 40 155 40 95 C40 45 70 20 120 20 Z"
+                  fill="none" stroke="#0F6E56" stroke-width="14" stroke-linejoin="round"/>
+            <path d="M120 205 C 142 217 160 223 182 222
+                     C 160 236 140 245 120 250
+                     C 100 245 80 236 58 222
+                     C 80 223 98 217 120 205 Z"
+                  fill="#0B7A78"/>
+            <path d="M60 175 C60 110 85 70 120 48 C155 70 180 110 180 175"
+                  fill="none" stroke="#12A06B" stroke-width="12" stroke-linecap="round"/>
+            <path d="M75 110 C75 80 95 65 120 65 C145 65 165 80 165 110"
+                  fill="none" stroke="#1BB876" stroke-width="11" stroke-linecap="round"/>
+            <circle cx="120" cy="95" r="13" fill="#1BB876"/>
+            <path d="M120 148
+                     C 111 137 99 131 89 135
+                     C 78 139 74 151 79 161
+                     C 84 171 100 184 120 198
+                     C 140 184 156 171 161 161
+                     C 166 151 162 139 151 135
+                     C 141 131 129 137 120 148 Z"
+                  fill="none" stroke="#8CFA00" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+            <path d="M120 198 C 106 208 92 213 80 213"
+                  fill="none" stroke="#8CFA00" stroke-width="11" stroke-linecap="round"/>
+        </svg>
+        <h1>Digital Wellbeing Security Framework - <br>Program Benchmarking demonstration</h1>
+        <p>Building digitally resilient schools for the next generation</p>
+    </header>
+
+    <form id="benchmarkForm">
+
+        <div class="step-progress">
+            <span class="step-dot active" data-dot="1"></span>
+            <span class="step-dot" data-dot="2"></span>
+            <span class="step-dot" data-dot="3"></span>
+            <span class="step-dot" data-dot="4"></span>
+        </div>
+        <div class="step-label" id="stepLabel">Step 1 of 4 — About DWSF</div>
+
+        <div class="form-step" data-step="1">
+            <div class="category-section">
+                <h2 class="category-title">About DWSF</h2>
+                <div class="intro-placeholder">
+                    <strong>The Digital Wellbeing Security Framework (DWSF) is a practical maturity assessment designed to help organisations understand and strengthen digital wellbeing. Inspired by proven cybersecurity approaches, DWSF provides a structured way to identify strengths, uncover gaps, and build more resilient digital environments.</strong>
+                    
+                    <p> <br>  This demonstration showcases a simplified version of the framework only covers Governance and Education and provides a snapshot of your current digital wellbeing maturity. </p>
+                    <p><br>The full framework goes further,
+                    covering students, educators, and parents in depth and produces a benchmark score, a actionable uplift project roadmap and an Executive report.</p>
+                </div>
+
+                <svg class="intro-diagram" viewBox="0 0 400 90" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="10" y="25" width="110" height="40" rx="8" fill="#EFF6FF" stroke="#0F6E56" stroke-width="1.5"/>
+                    <text x="65" y="49" text-anchor="middle" font-size="12" font-family="Inter, sans-serif" fill="#0f172a">Education</text>
+
+                    <line x1="120" y1="45" x2="150" y2="45" stroke="#0F6E56" stroke-width="2" marker-end="url(#arrow)"/>
+
+                    <rect x="150" y="25" width="110" height="40" rx="8" fill="#EFF6FF" stroke="#0F6E56" stroke-width="1.5"/>
+                    <text x="205" y="49" text-anchor="middle" font-size="12" font-family="Inter, sans-serif" fill="#0f172a">Governance</text>
+
+                    <line x1="260" y1="45" x2="290" y2="45" stroke="#0F6E56" stroke-width="2" marker-end="url(#arrow)"/>
+
+                    <rect x="290" y="25" width="100" height="40" rx="8" fill="#0F6E56"/>
+                    <text x="340" y="49" text-anchor="middle" font-size="12" font-family="Inter, sans-serif" fill="#ffffff">Your Score</text>
+
+                    <defs>
+                        <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                            <path d="M0,0 L6,3 L0,6 Z" fill="#0F6E56"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+        </div>
+
+        <div class="form-step" data-step="2" hidden>
+            <div class="category-section">
+                <h2 class="category-title">Please complete your details below</h2>
+                <div class="details-grid">
+                    <div class="field-block">
+                        <label class="field-label" for="respondentName">Name</label>
+                        <input class="field-input" type="text" id="respondentName" name="respondentName" placeholder="Jane Smith" required>
+                    </div>
+                    <div class="field-block">
+                        <label class="field-label" for="respondentEmail">Email</label>
+                        <input class="field-input" type="email" id="respondentEmail" name="respondentEmail" placeholder="jane@school.edu" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-step" data-step="3" hidden>
+            <div class="domain-layout">
+                <aside class="context-box context-left">
+                    <h4>Context</h4>
+                    <p>The ability to identify and safely respond to common online risks, including harmful content, suspicious contact, cyberbullying, scams, manipulative platform features, and AI-enabled harms such as fake content and impersonation.</p>
+                </aside>
+
+                <div class="category-section">
+                    <h2 class="category-title">2. Education</h2>
+                    <script>
+                        const cat2Questions = [
+                            {
+                                text: "Q4: How confident are you that young people can recognise harmful, misleading, or age-inappropriate content online?",
+                                options: ["Young people receive little guidance and may struggle to identify harmful or misleading content online", "Some awareness exists, but understanding varies and often develops only after problems occur", "Young people are regularly taught how to recognise, question, and respond to potentially harmful online content", "Young people demonstrate strong critical thinking skills, actively recognise online risks, and are supported through ongoing education and reinforcement"]
+                            },
+                            {
+                                text: "Q5: How confident are you that young people can recognise suspicious online behaviour and unwanted contact from others?",
+                                options: ["Young people receive little guidance and may not recognise warning signs of inappropriate online interactions", "Some awareness exists, but understanding varies and often develops only after concerns are raised or incidents occur", "Young people are regularly taught how to recognise suspicious behaviour, unwanted contact, and when to seek help", "Young people confidently identify warning signs, know how to respond safely, and are supported through ongoing education and reinforcement"]
+                            },
+                            {
+                                text: "Q6: How confident are you that young people can recognise cyberbullying and understand their role in creating a safe online environment?",
+                                options: ["Young people receive little guidance and may struggle to recognise cyberbullying or understand how their own actions can affect others.", "Some awareness exists, but understanding varies and discussions about responsibility often occur only after incidents arise", "Young people are regularly taught how to recognise cyberbullying, respond appropriately, and contribute positively to online communities", "Young people consistently demonstrate respectful online behaviour, recognise harmful peer interactions, and actively help foster safer digital environments"]
+                            }
+                        ];
+                        for(let i=0; i<cat2Questions.length; i++) {
+                            const q = cat2Questions[i];
+                            let optionsHtml = "";
+                            for (let opt = 0; opt < q.options.length; opt++) {
+                                const val = opt + 1;
+                                const requiredAttr = opt === 0 ? "required" : "";
+                                optionsHtml += `<label class="option-label"><input type="radio" name="q${i+4}" value="${val}" ${requiredAttr}>${q.options[opt]}</label>`;
+                            }
+                            document.write(`
+                                <div class="question-block">
+                                    <span class="question-text">${q.text}</span>
+                                    <div class="options-group">
+                                        ${optionsHtml}
+                                    </div>
+                                </div>
+                            `);
+                        }
+                    </script>
+                </div>
+
+                <aside class="context-box context-right">
+                    <h4>Why this matters</h4>
+                    <p>
+The digital world presents opportunities as well as risks. The ability to recognise potential harms, make informed choices, and seek help when needed is a key part of building lifelong digital resilience.</p>
+                </aside>
+            </div>
+        </div>
+
+        <div class="form-step" data-step="4" hidden>
+            <div class="domain-layout">
+                <aside class="context-box context-left">
+                    <h4>Context</h4>
+                    <p>The structures, processes, and leadership practices that enable digital wellbeing initiatives to be planned, implemented, measured, and continuously improved</p>
+                </aside>
+
+                <div class="category-section">
+                    <h2 class="category-title">1. Governance</h2>
+                    <script>
+                        const cat1Questions = [
+                            {
+                                text: "Q1: If a digital wellbeing issue occurred tomorrow, would the people around you know how to respond?",
+                                options: ["We would likely be caught off guard and unsure how to respond.", "We could respond, but our approach would be inconsistent and depend on who was involved.", "We have a clear and generally understood approach for handling digital wellbeing concerns.", "We regularly review, improve, and communicate our approach so people feel confident responding when issues arise."]
+                            },
+                            {
+                                text: "Q2: If someone reported a digital wellbeing concern today, how confident are you that it would be handled appropriately and escalated when necessary?",
+                                options: ["We would likely be unsure how to handle the situation or who should take responsibility.", "We would try to respond, but the process would depend on the people involved and may be inconsistent.", "We have a clear and generally understood approach for responding to concerns and escalating serious issues", "Our response and escalation processes are well understood, regularly reviewed, and continually improved based on experience and feedback."]
+                            },
+                            {
+                                text: "Q3: Do the people around you feel comfortable raising digital wellbeing concerns, and is positive online behaviour actively encouraged?",
+                                options: ["People may be reluctant to speak up, and positive digital behaviours are rarely discussed or reinforced.", "Concerns are sometimes raised, but support and encouragement are inconsistent and depend on the individuals involved.", "People generally feel comfortable reporting concerns, and positive digital behaviours are regularly encouraged and supported.", "here is a strong culture of trust where concerns are raised early, positive behaviours are actively modelled, and continuous improvement is encouraged."]
+                            }
+                        ];
+                        for(let i=0; i<cat1Questions.length; i++) {
+                            const q = cat1Questions[i];
+                            let optionsHtml = "";
+                            for (let opt = 0; opt < q.options.length; opt++) {
+                                const val = opt + 1;
+                                const requiredAttr = opt === 0 ? "required" : "";
+                                optionsHtml += `<label class="option-label"><input type="radio" name="q${i+1}" value="${val}" ${requiredAttr}>${q.options[opt]}</label>`;
+                            }
+                            document.write(`
+                                <div class="question-block">
+                                    <span class="question-text">${q.text}</span>
+                                    <div class="options-group">
+                                        ${optionsHtml}
+                                    </div>
+                                </div>
+                            `);
+                        }
+                    </script>
+                </div>
+
+                <aside class="context-box context-right">
+                    <h4>Why this matters</h4>
+                    <p>Strong governance ensures digital wellbeing is not left to chance. It provides the leadership, accountability, and structure needed to identify risks early, prioritise action, and sustain positive outcomes over time.</p>
+                </aside>
+            </div>
+        </div>
+
+        <div class="submit-area">
+            <button type="button" class="btn-alt" id="backBtn" hidden>&larr; Back</button>
+            <button type="button" class="btn" id="nextBtn">Next &rarr;</button>
+            <button type="submit" class="btn" id="submitBtn" hidden>Calculate DWSF Benchmark Score</button>
+            <div id="submit-status" class="submit-status"></div>
+        </div>
+    </form>
+
+    <div id="results-overlay">
+      <div id="results-box">
+        <button type="button" id="results-close" aria-label="Close results">&times;</button>
+
+        <div class="score-display">
+            <div class="score-num"><span id="score-pct">0</span>%</div>
+            <div class="score-label">DWSF Maturity Index: <span id="score-raw">0</span>/24</div>
+            <div id="tier-badge" class="score-tier">Analyzing...</div>
+        </div>
+
+        <div class="recommendations-wrapper">
+            <h3>Targeted Action Items & Recommendations</h3>
+            
+            <div class="rec-box strength-box">
+                <h4>Current Key Strengths (What you are doing well)</h4>
+                <div id="rec-strengths"></div>
+            </div>
+            
+            <div class="rec-box">
+                <h4>Short-Term Strategy (Closing the structural gaps)</h4>
+                <div id="rec-shortterm"></div>
+            </div>
+
+            <div class="rec-box" style="border-left-color: var(--primary);">
+                <h4>Long-Term Governance Architecture</h4>
+                <div id="rec-longterm"></div>
+            </div>
+        </div>
+
+        <div id="report-date"></div>
+      </div>
+    </div>
+</div>
+
+<script>
+    // ---- Web3Forms configuration ----
+    // Sign up free at https://web3forms.com, create a form, and paste your
+    // Access Key below. Submissions will be emailed to the address you
+    // registered with Web3Forms.
+    const WEB3FORMS_ACCESS_KEY = "YOUR_WEB3FORMS_ACCESS_KEY_HERE";
+
+    let reportData = { percent: 0, raw: 0, tier: "", strengthsTxt: "", shortTermTxt: "", longTermTxt: "", timestamp: "" };
+
+    // ---- Step wizard navigation ----
+    const steps = Array.from(document.querySelectorAll('.form-step'));
+    const stepDots = Array.from(document.querySelectorAll('.step-dot'));
+    const stepLabel = document.getElementById('stepLabel');
+    const backBtn = document.getElementById('backBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const stepTitles = ['About DWSF', 'Your Details', 'Education', 'Governance'];
+    let currentStep = 1;
+
+    function showStep(stepNum) {
+        steps.forEach((stepEl) => {
+            stepEl.hidden = Number(stepEl.dataset.step) !== stepNum;
+        });
+
+        stepDots.forEach((dot) => {
+            const dotNum = Number(dot.dataset.dot);
+            dot.classList.toggle('active', dotNum === stepNum);
+            dot.classList.toggle('complete', dotNum < stepNum);
+        });
+
+        stepLabel.textContent = `Step ${stepNum} of ${steps.length} — ${stepTitles[stepNum - 1]}`;
+
+        backBtn.hidden = stepNum === 1;
+        nextBtn.hidden = stepNum === steps.length;
+        submitBtn.hidden = stepNum !== steps.length;
+
+        // Bring the top of the form into view so a step never starts mid-scroll
+        document.getElementById('benchmarkForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function currentStepIsValid() {
+        const activeStep = steps[currentStep - 1];
+        const inputs = activeStep.querySelectorAll('input[required]');
+        for (const input of inputs) {
+            if (input.type === 'radio') {
+                const group = activeStep.querySelectorAll(`input[name="${input.name}"]`);
+                const answered = Array.from(group).some((radio) => radio.checked);
+                if (!answered) {
+                    input.reportValidity();
+                    return false;
+                }
+            } else if (!input.checkValidity()) {
+                input.reportValidity();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    nextBtn.addEventListener('click', () => {
+        if (!currentStepIsValid()) return;
+        currentStep = Math.min(currentStep + 1, steps.length);
+        showStep(currentStep);
+    });
+
+    backBtn.addEventListener('click', () => {
+        currentStep = Math.max(currentStep - 1, 1);
+        showStep(currentStep);
+    });
+
+    showStep(currentStep);
+
+    document.getElementById('benchmarkForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const respondentName = document.getElementById('respondentName').value.trim();
+        const respondentEmail = document.getElementById('respondentEmail').value.trim();
+
+        // Track category arrays separately to isolate what they are doing well
+        // 2 domains x 3 questions x 4-point scale = max 12 points per domain, 24 overall
+        let catScores = [0, 0];
+        const catNames = [
+            "Governance",
+            "Education"
+        ];
+        const MAX_PER_CATEGORY = 12; // 3 questions x 4 points
+        const MAX_TOTAL = 24;        // 6 questions x 4 points
+
+        let totalScore = 0;
+        for (let i = 1; i <= 6; i++) {
+            const checkedRadio = document.querySelector(`input[name="q${i}"]:checked`);
+            if (checkedRadio) {
+                let val = parseInt(checkedRadio.value);
+                totalScore += val;
+
+                // Categorize indexes (Questions 1-3 go to index 0 (Governance), 4-6 to index 1 (Education))
+                let catIdx = Math.floor((i - 1) / 3);
+                catScores[catIdx] += val;
+            }
+        }
+
+        const percentage = Math.round((totalScore / MAX_TOTAL) * 100);
+        const resultsOverlay = document.getElementById('results-overlay');
+        
+        document.getElementById('score-pct').innerText = percentage;
+        document.getElementById('score-raw').innerText = totalScore;
+        
+        const tierBadge = document.getElementById('tier-badge');
+        tierBadge.className = 'score-tier';
+
+        // Evaluate top categories
+        let maxCatVal = Math.max(...catScores);
+        let topCategoryIndex = catScores.indexOf(maxCatVal);
+        let topCategoryName = catNames[topCategoryIndex];
+
+        let strengthsHtml = `<ul><li>You demonstrate solid momentum within <strong>${topCategoryName}</strong>, outperforming the other domain with an operational score of ${maxCatVal}/${MAX_PER_CATEGORY}.</li><li>Existing Digital Wellbeing awareness here lay a clean foundation for scaling unified digital wellbeing initiatives.</li></ul>`;
+
+        let stHtml = "", ltTxt = "";
+
+        if (percentage < 45) {
+            reportData.tier = 'Emerging / Fragmented Protection';
+            tierBadge.classList.add('tier-low');
+            stHtml = "<ul><li>Address fundamental Digital Wellbeing governance architectural vulnerabilities immediately.]</li><li>Formulate explicit basic Digital Wellbeing reporting criteria for teachers.</li></ul>";
+            ltTxt = "Establish an end-to-end organisational roadmap to lift policies from an informal basis to standardised compliance with relation to Digital Wellbeing.";
+        } else if (percentage >= 45 && percentage < 75) {
+            reportData.tier = 'Progressing / Locally Managed';
+            tierBadge.classList.add('tier-med');
+            stHtml = "<ul><li>Connect existing school systems directly to parent interfaces to align home/school tech boundaries.</li><li>Expand classroom digital literacy programs toward structural algorithmic awareness templates.</li></ul>";
+            ltTxt = "Implement standardised operational Digital Wellbeing risk assessments across all school branches to achieve consistent institutional protection levels.";
+        } else {
+            reportData.tier = 'Optimized / Systemically Secure';
+            tierBadge.classList.add('tier-high');
+            stHtml = "<ul><li>Execute recurring quarterly policy iteration tests to track shifting web threats.</li><li>Lead community mentorship forums across other districts to scale framework insights.</li></ul>";
+            ltTxt = "Maintain real-time evaluation loops linking local technical compliance metrics back into the structural digital wellbeing environment.";
+        }
+
+        document.getElementById('rec-strengths').innerHTML = strengthsHtml;
+        document.getElementById('rec-shortterm').innerHTML = stHtml;
+        document.getElementById('rec-longterm').innerText = ltTxt;
+
+        // Generate date stamp
+        const now = new Date();
+        const formattedDate = now.toLocaleDateString('en-US', { 
+            year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+
+        // Map data to global tracker
+        reportData.percent = percentage;
+        reportData.raw = totalScore;
+        reportData.strengthsTxt = document.getElementById('rec-strengths').innerText.replace(/\n/g, " ");
+        reportData.shortTermTxt = document.getElementById('rec-shortterm').innerText.replace(/\n/g, " ");
+        reportData.longTermTxt = ltTxt;
+        reportData.timestamp = formattedDate;
+
+        document.getElementById('report-date').innerHTML = `<strong>Report Generated:</strong> ${formattedDate}`;
+
+        tierBadge.innerText = reportData.tier;
+        resultsOverlay.classList.add('visible');
+
+        // Send only the respondent's name and email via Web3Forms (no quiz answers/results)
+        submitToWeb3Forms(respondentName, respondentEmail);
+    });
+
+    function submitToWeb3Forms(respondentName, respondentEmail) {
+        const statusEl = document.getElementById('submit-status');
+        const submitBtn = document.getElementById('submitBtn');
+
+        if (!WEB3FORMS_ACCESS_KEY || WEB3FORMS_ACCESS_KEY === "YOUR_WEB3FORMS_ACCESS_KEY_HERE") {
+            statusEl.textContent = "Note: Web3Forms access key not set, so this result was not emailed.";
+            statusEl.className = "submit-status error";
+            return;
+        }
+
+        submitBtn.disabled = true;
+        statusEl.textContent = "Sending your details...";
+        statusEl.className = "submit-status";
+
+        const payload = {
+            access_key: WEB3FORMS_ACCESS_KEY,
+            subject: `New DWSF Benchmark respondent: ${respondentName}`,
+            from_name: respondentName,
+            name: respondentName,
+            email: respondentEmail,
+            message: `${respondentName} (${respondentEmail}) completed the DWSF Benchmark on ${reportData.timestamp}.`
+        };
+
+        fetch("https://api.web3forms.com/submit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify(payload)
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.success) {
+                    statusEl.textContent = "Your results were submitted successfully.";
+                    statusEl.className = "submit-status success";
+                } else {
+                    statusEl.textContent = "There was a problem sending your details. Your score is still shown above.";
+                    statusEl.className = "submit-status error";
+                }
+            })
+            .catch(() => {
+                statusEl.textContent = "There was a problem sending your details. Your score is still shown above.";
+                statusEl.className = "submit-status error";
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+            });
+    }
+
+    document.getElementById('results-close').addEventListener('click', () => {
+        document.getElementById('results-overlay').classList.remove('visible');
+    });
+
+    document.getElementById('results-overlay').addEventListener('click', (e) => {
+        if (e.target.id === 'results-overlay') {
+            e.currentTarget.classList.remove('visible');
+        }
+    });
+</script>
+
+</body>
+</html>
