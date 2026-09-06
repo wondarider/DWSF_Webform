@@ -856,7 +856,7 @@
     // Sign up free at https://web3forms.com, create a form, and paste your
     // Access Key below. Submissions will be emailed to the address you
     // registered with Web3Forms.
-    const WEB3FORMS_ACCESS_KEY = "e3a361f3-4299-4ef0-96fa-474ab15cd762";
+   const WEB3FORMS_ACCESS_KEY = "e3a361f3-4299-4ef0-96fa-474ab15cd762";
 
     // ---- "Share my results" feature toggle ----
     // Set to false to hide the name/email/consent box at the bottom of the
@@ -1064,7 +1064,7 @@
         const statusEl = document.getElementById('submit-status');
         const sendReportBtn = document.getElementById('sendReportBtn');
 
-        if (!WEB3FORMS_ACCESS_KEY || WEB3FORMS_ACCESS_KEY === "e3a361f3-4299-4ef0-96fa-474ab15cd762") {
+           if (!WEB3FORMS_ACCESS_KEY || WEB3FORMS_ACCESS_KEY === "YOUR_WEB3FORMS_ACCESS_KEY_HERE") {
             statusEl.textContent = "Note: Web3Forms access key not set, so this result was not emailed.";
             statusEl.className = "submit-status error";
             return;
